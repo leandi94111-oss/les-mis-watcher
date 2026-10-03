@@ -1,0 +1,40 @@
+# 《Les Misérables》Châtelet 青年票監控 — 在 GitHub 雲端每 5 分鐘執行一次（電腦關機也照跑）
+name: Les Mis youth ticket watcher
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # GitHub 實際約每 5–15 分鐘觸發一次
+  workflow_dispatch:         # 可在 Actions 頁面手動按「Run workflow」
+
+permissions:
+  contents: write            # 需要把 state.json（已通知過哪些票）存回 repo
+
+concurrency:
+  group: lesmis-watcher
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tickets
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_APP_PASSWORD: ${{ secrets.SMTP_APP_PASSWORD }}
+          NOTIFY_TO: ${{ secrets.NOTIFY_TO }}
+          LESMIS_MODE: ${{ vars.LESMIS_MODE || 'youth' }}
+        run: python3 les_mis_watcher.py
+
+      - name: Save state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Update ticket state"
+            git pull --rebase -X theirs || true
+            git push
+          fi
