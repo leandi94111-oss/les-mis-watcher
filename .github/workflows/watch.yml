@@ -5,6 +5,11 @@ on:
   schedule:
     - cron: "*/5 * * * *"   # GitHub 實際約每 5–15 分鐘觸發一次
   workflow_dispatch:         # 可在 Actions 頁面手動按「Run workflow」
+    inputs:
+      test_email:
+        description: "先寄一封測試信"
+        type: boolean
+        default: false
 
 permissions:
   contents: write            # 需要把 state.json（已通知過哪些票）存回 repo
@@ -26,7 +31,9 @@ jobs:
           SMTP_APP_PASSWORD: ${{ secrets.SMTP_APP_PASSWORD }}
           NOTIFY_TO: ${{ secrets.NOTIFY_TO }}
           LESMIS_MODE: ${{ vars.LESMIS_MODE || 'youth' }}
-        run: python3 les_mis_watcher.py
+        run: |
+          if [ "${{ inputs.test_email }}" = "true" ]; then python3 les_mis_watcher.py --test-email; fi
+          python3 les_mis_watcher.py
 
       - name: Save state
         run: |
