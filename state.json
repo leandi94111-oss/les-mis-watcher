@@ -1,5 +1,9 @@
 {
-  "available": {},
-  "notified": {},
+  "available": {
+    "main|10229562012615|Catégorie 4|Jeune - de 30 ans|10000": 1793210163
+  },
+  "notified": {
+    "main|10229562012615|Catégorie 4|Jeune - de 30 ans|10000": 1793210163
+  },
   "heartbeat": "2026-W44"
 }
